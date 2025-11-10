@@ -1,3 +1,26 @@
+# Create addition roles for load balancer service account.
+
+resource "aws_iam_policy" "additional" {
+  name        = "additionol_lb_roles"
+  path        = "/"
+  description = "additionol_lb_roles"
+
+  # Terraform's "jsonencode" function converts a
+  # Terraform expression result to valid JSON syntax.
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+          "ec2:DescribeRouteTables",
+          "elasticloadbalancing:DescribeListenerAttributes"
+        ]
+        Effect   = "Allow"
+        Resource = "*"
+      },
+    ]
+  })
+}
 
 # Load balancer role
 module "lb_role" {
@@ -12,6 +35,9 @@ module "lb_role" {
       provider_arn               = var.oidc_provider_arn
       namespace_service_accounts = ["kube-system:aws-load-balancer-controller"]
     }
+  }
+  role_policy_arns = {
+    additional           = aws_iam_policy.additional.arn
   }
 }
 

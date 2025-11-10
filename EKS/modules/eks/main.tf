@@ -31,19 +31,6 @@ module "eks" {
     node_pools = ["general-purpose"]
   }
 
-  # Enable this if you want to create node groups
-  # eks_managed_node_groups = {
-  #    blue = {
-  #     min_size     = 1
-  #     max_size     = 2
-  #     desired_size = 1
-  #     instance_types = ["t2.medium"]
-  #     iam_role_additional_policies = {
-  #     AmazonEBSCSIDriverPolicy = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
-  #   }
-	#   }
-  # }
-
   vpc_id     = var.vpc_id
   subnet_ids = var.subnet_ids
   
@@ -72,12 +59,12 @@ data "aws_iam_policy_document" "eks-policy" {
     statement {
     effect = "Allow"
     actions = [
-          "ecr:GetAuthorizationToken",
-          "ecr:BatchCheckLayerAvailability",
-          "ecr:GetDownloadUrlForLayer",
-          "ecr:BatchGetImage",
-          "elasticloadbalancing:*",
-          "ec2:*"
+      "ecr:GetAuthorizationToken",
+      "ecr:BatchCheckLayerAvailability",
+      "ecr:GetDownloadUrlForLayer",
+      "ecr:BatchGetImage",
+      "elasticloadbalancing:*",
+      "ec2:*"
     ]
     resources = ["*"]
   }

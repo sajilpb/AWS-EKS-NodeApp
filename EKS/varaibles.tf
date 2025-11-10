@@ -35,7 +35,7 @@ variable "env_name" {
 
 variable "ecr_repository_name" {
   type    = string
-  default = "devopstestautomation"
+  default = "devopsautomation"
 }
 
 ################################################################################
@@ -67,3 +67,11 @@ variable "source-branch" {
     default = "main"
 }
 
+################################################################################
+# Route53 Variables
+################################################################################
+
+variable "domain_name" {
+  type = string
+  default = "sajil.click"
+}
