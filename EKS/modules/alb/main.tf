@@ -13,7 +13,8 @@ resource "aws_iam_policy" "additional" {
       {
         Action = [
           "ec2:DescribeRouteTables",
-          "elasticloadbalancing:DescribeListenerAttributes"
+          "elasticloadbalancing:DescribeListenerAttributes",
+          "elasticloadbalancing:SetRulePriorities"
         ]
         Effect   = "Allow"
         Resource = "*"

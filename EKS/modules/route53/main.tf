@@ -112,7 +112,39 @@ resource "helm_release" "external_dns" {
     name  = "serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
     value = aws_iam_role.external_dns.arn
     }
-        ]
+      ]
 }
 
+# data "aws_route53_zone" "selected" {
+#   name         = "sajil.click."
+#   private_zone = false
+# }
 
+# # Request acm certificates
+# resource "aws_acm_certificate" "example" {
+#   domain_name       = "sajil.click"
+#   subject_alternative_names = ["*.sajil.click"]
+#   validation_method = "DNS"
+# }
+
+# resource "aws_route53_record" "example_cert_validation" {
+#   for_each = {
+#     for dvo in aws_acm_certificate.example.domain_validation_options : dvo.domain_name => {
+#       name  = dvo.resource_record_name
+#       type  = dvo.resource_record_type
+#       value = dvo.resource_record_value
+#     }
+#   }
+
+#   zone_id = data.aws_route53_zone.selected.zone_id
+#   name    = each.value.name
+#   type    = each.value.type
+#   ttl     = 60
+#   records = [each.value.value]
+# }
+
+# #Validate the Certificate
+# resource "aws_acm_certificate_validation" "example" {
+#   certificate_arn         = aws_acm_certificate.example.arn
+#   validation_record_fqdns = [for record in aws_route53_record.example_cert_validation : record.fqdn]
+# }
