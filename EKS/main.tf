@@ -27,17 +27,17 @@ module "eks" {
   aws_eks_cluster_name = var.cluster_name
 }
 
-################################################################
-# ECR Module
-################################################################
+# ################################################################
+# # ECR Module
+# ################################################################
 module "ecr" {
   source              = "./modules/ecr"
   ecr_repository_name = var.ecr_repository_name
 }
 
-################################################################
-# ALB Module
-################################################################
+# ################################################################
+# # ALB Module
+# ################################################################
 module "alb" {
   source            = "./modules/alb"
   main-region       = var.main-region
@@ -69,4 +69,14 @@ module "argocd" {
   main-region  = var.main-region
   vpc_id       = module.vpc.vpc_id
   depends_on   = [module.eks,module.route53 ]
+}
+
+#########################################
+# IAM Role for EBS CSI Driver (IRSA)
+#########################################
+module "csiaddon" {
+  source = "./modules/eks-addons"
+  oidc_provider_arn = module.eks.oidc_provider_arn
+  oidc_provider_url = module.eks.cluster_oidc_issuer_url
+  cluster_name = var.cluster_name
 }

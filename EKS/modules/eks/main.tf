@@ -1,62 +1,9 @@
-module "eks" {
-  source  = "terraform-aws-modules/eks/aws"
-  version = "~> 21.0"
+# Data sources (unchanged)
+data "aws_caller_identity" "current" {}
 
-  name               = var.aws_eks_cluster_name
-  kubernetes_version = "1.34"
-  create_kms_key = false
-  create_cloudwatch_log_group = false
-  enable_irsa = true
-  endpoint_public_access = true
-  addons = {
-    coredns = {
-      most_recent = true
-    }
-    kube-proxy = {
-      most_recent = true
-    }
-    vpc-cni = {
-      most_recent = true
-    }
-  }
-  enable_cluster_creator_admin_permissions = true
-  encryption_config = null
-  node_iam_role_additional_policies = {
-    ecr_access = aws_iam_policy.eks_ecr_policy.arn
-  }
-
-   # this will create a general purpose, more faster.
-  compute_config = {
-    enabled    = true
-    node_pools = ["general-purpose"]
-  }
-
-  vpc_id     = var.vpc_id
-  subnet_ids = var.subnet_ids
-  
-  tags = {
-    Environment = "dev"
-    Terraform   = "true"
-  }
-}
-
-########### Role for EKS ###########
-
-data "aws_iam_policy_document" "assume_role_eks" {
-  statement {
-    effect = "Allow"
-
-    principals {
-      type        = "Service"
-      identifiers = ["eks.amazonaws.com"]
-    }
-
-    actions = ["sts:AssumeRole"]
-  }
-}
-
+########### ECR Policy for Node Groups (simplified - removed duplicates) ###########
 data "aws_iam_policy_document" "eks-policy" {
-    statement {
+  statement {
     effect = "Allow"
     actions = [
       "ecr:GetAuthorizationToken",
@@ -70,17 +17,6 @@ data "aws_iam_policy_document" "eks-policy" {
   }
 }
 
-resource "aws_iam_role" "eks-ecr" {
-  name               = "eks-ecr"
-  assume_role_policy = data.aws_iam_policy_document.assume_role_eks.json
-}
-
-resource "aws_iam_role_policy" "eks" {
-  name   = "eks-node"
-  role   = aws_iam_role.eks-ecr.name
-  policy = data.aws_iam_policy_document.eks-policy.json
-}
-
 resource "aws_iam_policy" "eks_ecr_policy" {
   name        = "EKS-ECR-Access"
   description = "Allow EKS worker nodes to pull images from ECR"
@@ -88,3 +24,51 @@ resource "aws_iam_policy" "eks_ecr_policy" {
 }
 
 
+########### EKS Module (main fixes: removed circular access entry) ###########
+module "eks" {
+  source              = "terraform-aws-modules/eks/aws"
+  version             = "21.9.0"
+  name                = var.aws_eks_cluster_name
+  kubernetes_version  = "1.34"
+  create_kms_key      = false
+  enable_irsa         = true
+  vpc_id              = var.vpc_id
+  subnet_ids          = var.subnet_ids
+  encryption_config   = null
+
+  create_cloudwatch_log_group = false
+  endpoint_public_access = true
+
+  addons = {
+    coredns                = { most_recent = true }
+    eks-pod-identity-agent = { before_compute = true}
+    kube-proxy             = { most_recent = true }
+    vpc-cni                = { before_compute = true}
+  }
+
+  enable_cluster_creator_admin_permissions = true
+
+  # Attach ECR policy to node IAM role (unchanged)
+  node_iam_role_additional_policies = {
+    ecr_access = aws_iam_policy.eks_ecr_policy.arn
+  } 
+ 
+  # EKS Managed Node Group(s)
+  eks_managed_node_groups = {
+    NodeApp = {
+      # Starting on 1.30, AL2023 is the default AMI type for EKS managed node groups
+      ami_type       = "AL2023_x86_64_STANDARD"
+      instance_types = ["t2.large"]
+
+      min_size     = 1
+      max_size     = 3
+      desired_size = 1
+    }
+
+  }
+
+  tags = {
+    Environment = "dev"
+    Terraform   = "true"
+  }
+}
