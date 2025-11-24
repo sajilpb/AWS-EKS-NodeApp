@@ -92,6 +92,12 @@ kubectl get svc -n argocd
 
 # Access UI
 https://argocd.sajil.click
+
+Get password from:
+kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
+
+username: admin
+password:
 ```
 
 ## ✅ Requirements
