@@ -61,7 +61,7 @@ module "eks" {
       instance_types = ["t2.large"]
 
       min_size     = 1
-      max_size     = 3
+      max_size     = 2
       desired_size = 1
     }
 

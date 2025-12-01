@@ -80,3 +80,11 @@ module "csiaddon" {
   oidc_provider_url = module.eks.cluster_oidc_issuer_url
   cluster_name = var.cluster_name
 }
+
+#########################################
+# Promethius and Grafana stack
+#########################################
+module "monitoring" {
+  source = "git::https://github.com/sajilpb/Promethius.Grafana.stack.git"
+  depends_on = [ module.csiaddon,module.eks]
+}

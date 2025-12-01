@@ -12,7 +12,8 @@ resource "aws_iam_role" "ebs_csi_irsa" {
         Action = "sts:AssumeRoleWithWebIdentity"
         Condition = {
           StringEquals = {
-            "${var.oidc_provider_url}:sub" = "system:serviceaccount:kube-system:ebs-csi-controller-sa"
+            "${replace(var.oidc_provider_url, "https://", "")}:sub": "system:serviceaccount:kube-system:ebs-csi-controller-sa"
+
           }
         }
       }
@@ -31,4 +32,24 @@ resource "aws_eks_addon" "ebs_csi" {
   addon_name                = "aws-ebs-csi-driver"
   addon_version             = "v1.36.0-eksbuild.1" 
   service_account_role_arn  = aws_iam_role.ebs_csi_irsa.arn
+}
+
+resource "kubernetes_storage_class_v1" "gp3" {
+  metadata {
+    name = "gp3"
+
+    annotations = {
+      "storageclass.kubernetes.io/is-default-class" = "true"
+    }
+  }
+
+  storage_provisioner = "ebs.csi.aws.com"
+  volume_binding_mode = "WaitForFirstConsumer"
+
+  parameters = {
+    type  = "gp3"
+    fsType = "ext4"
+  }
+
+  allow_volume_expansion = true
 }

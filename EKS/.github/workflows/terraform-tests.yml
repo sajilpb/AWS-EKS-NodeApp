@@ -1,0 +1,67 @@
+name: "Terraform Tests"
+
+on:
+  push:
+    paths:
+      - '**/*.tf'
+      - '**/*.tfvars'
+      - 'modules/**'
+      - 'applications/**'
+  pull_request:
+    paths:
+      - '**/*.tf'
+      - '**/*.tfvars'
+      - 'modules/**'
+      - 'applications/**'
+
+jobs:
+  terraform:
+    name: Terraform checks
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Cache Terraform plugins
+        uses: actions/cache@v4
+        with:
+          path: |
+            .terraform
+            .terraform.lock.hcl
+          key: ${{ runner.os }}-terraform-${{ hashFiles('**/*.tf','**/*.tfvars') }}
+          restore-keys: |
+            ${{ runner.os }}-terraform-
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 'latest'
+
+      - name: Terraform fmt
+        run: terraform fmt -check -recursive
+
+      - name: Run tflint (container)
+        run: |
+          docker run --rm -v "${{ github.workspace }}:/workspace" -w /workspace ghcr.io/terraform-linters/tflint:latest --module
+
+      - name: Run tfsec (container)
+        run: |
+          docker run --rm -v "${{ github.workspace }}:/src" -w /src aquasecurity/tfsec:latest .
+
+      - name: Terraform init
+        run: terraform init -input=false
+
+      - name: Terraform validate
+        run: terraform validate -no-color
+
+      - name: Terraform plan
+        run: terraform plan -input=false -no-color -out=tfplan
+
+      - name: Upload plan artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan
+          path: tfplan
