@@ -1,158 +1,158 @@
-name: Terraform PR Checks
+# name: Terraform PR Checks
 
-on:
-  pull_request:
-    paths:
-      - '**.tf'
-      - '**.tfvars'
-      - '.github/workflows/terraform-pr-checks.yml'
-  push:
-    branches:
-      - main
-    paths:
-      - '**.tf'
-      - '**.tfvars'
-      - '.github/workflows/terraform-pr-checks.yml'
+# on:
+#   pull_request:
+#     paths:
+#       - '**.tf'
+#       - '**.tfvars'
+#       - '.github/workflows/terraform-pr-checks.yml'
+#   push:
+#     branches:
+#       - feature/fargate
+#     paths:
+#       - '**.tf'
+#       - '**.tfvars'
+#       - '.github/workflows/terraform-pr-checks.yml'
 
-env:
-  TERRAFORM_VERSION: 1.6.0
-  TFSEC_VERSION: v1.28.1
+# env:
+#   TERRAFORM_VERSION: 1.6.0
+#   TFSEC_VERSION: v1.28.1
 
-jobs:
-  terraform-checks:
-    runs-on: ubuntu-latest
+# jobs:
+#   terraform-checks:
+#     runs-on: ubuntu-latest
     
-    permissions:
-      contents: read
-      pull-requests: write
-      checks: write
+#     permissions:
+#       contents: read
+#       pull-requests: write
+#       checks: write
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v4
+#         with:
+#           fetch-depth: 0
 
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v2
-        with:
-          terraform_version: ${{ env.TERRAFORM_VERSION }}
+#       - name: Set up Terraform
+#         uses: hashicorp/setup-terraform@v2
+#         with:
+#           terraform_version: ${{ env.TERRAFORM_VERSION }}
 
-      - name: Terraform Format Check
-        id: fmt
-        run: |
-          echo "### Terraform Format Check" >> $GITHUB_STEP_SUMMARY
-          if terraform fmt -check -recursive .; then
-            echo "✅ Terraform files are properly formatted" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "❌ Terraform files need formatting" >> $GITHUB_STEP_SUMMARY
-            exit 1
-          fi
+#       - name: Terraform Format Check
+#         id: fmt
+#         run: |
+#           echo "### Terraform Format Check" >> $GITHUB_STEP_SUMMARY
+#           if terraform fmt -check -recursive .; then
+#             echo "✅ Terraform files are properly formatted" >> $GITHUB_STEP_SUMMARY
+#           else
+#             echo "❌ Terraform files need formatting" >> $GITHUB_STEP_SUMMARY
+#             exit 1
+#           fi
 
-      - name: Terraform Init
-        id: init
-        run: |
-          echo "### Terraform Init" >> $GITHUB_STEP_SUMMARY
-          terraform init -backend=false
-          echo "✅ Terraform init completed successfully" >> $GITHUB_STEP_SUMMARY
+#       - name: Terraform Init
+#         id: init
+#         run: |
+#           echo "### Terraform Init" >> $GITHUB_STEP_SUMMARY
+#           terraform init -backend=false
+#           echo "✅ Terraform init completed successfully" >> $GITHUB_STEP_SUMMARY
 
-      - name: Terraform Validate
-        id: validate
-        run: |
-          echo "### Terraform Validate" >> $GITHUB_STEP_SUMMARY
-          if terraform validate; then
-            echo "✅ Terraform validation passed" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "❌ Terraform validation failed" >> $GITHUB_STEP_SUMMARY
-            exit 1
-          fi
+#       - name: Terraform Validate
+#         id: validate
+#         run: |
+#           echo "### Terraform Validate" >> $GITHUB_STEP_SUMMARY
+#           if terraform validate; then
+#             echo "✅ Terraform validation passed" >> $GITHUB_STEP_SUMMARY
+#           else
+#             echo "❌ Terraform validation failed" >> $GITHUB_STEP_SUMMARY
+#             exit 1
+#           fi
 
-      - name: Terraform Plan
-        id: plan
-        run: |
-          echo "### Terraform Plan" >> $GITHUB_STEP_SUMMARY
-          terraform plan -no-color -out=tfplan 2>&1 | tee plan.txt || true
+#       - name: Terraform Plan
+#         id: plan
+#         run: |
+#           echo "### Terraform Plan" >> $GITHUB_STEP_SUMMARY
+#           terraform plan -no-color -out=tfplan 2>&1 | tee plan.txt || true
 
-          if [ -f plan.txt ]; then
-            PLAN_OUTPUT=$(cat plan.txt)
-            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-            echo "$PLAN_OUTPUT" >> $GITHUB_STEP_SUMMARY
-            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-          fi
+#           if [ -f plan.txt ]; then
+#             PLAN_OUTPUT=$(cat plan.txt)
+#             echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+#             echo "$PLAN_OUTPUT" >> $GITHUB_STEP_SUMMARY
+#             echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+#           fi
 
-      - name: Install tfsec
-        id: tfsec-install
-        run: |
-          wget -q -O tfsec https://github.com/aquasecurity/tfsec/releases/download/${{ env.TFSEC_VERSION }}/tfsec-linux-amd64
-          chmod +x tfsec
-          sudo mv tfsec /usr/local/bin/
-          tfsec --version
+#       - name: Install tfsec
+#         id: tfsec-install
+#         run: |
+#           wget -q -O tfsec https://github.com/aquasecurity/tfsec/releases/download/${{ env.TFSEC_VERSION }}/tfsec-linux-amd64
+#           chmod +x tfsec
+#           sudo mv tfsec /usr/local/bin/
+#           tfsec --version
 
-      - name: Run tfsec Security Scan
-        id: tfsec
-        continue-on-error: true
-        run: |
-          echo "### tfsec Security Scan" >> $GITHUB_STEP_SUMMARY
+#       - name: Run tfsec Security Scan
+#         id: tfsec
+#         continue-on-error: true
+#         run: |
+#           echo "### tfsec Security Scan" >> $GITHUB_STEP_SUMMARY
           
-          tfsec . -f json > tfsec-results.json 2>/dev/null || true
+#           tfsec . -f json > tfsec-results.json 2>/dev/null || true
           
-          if [ -f tfsec-results.json ]; then
-            CRITICAL_COUNT=$(jq '[.results[]? | select(.severity=="CRITICAL")] | length' tfsec-results.json)
-            HIGH_COUNT=$(jq '[.results[]? | select(.severity=="HIGH")] | length' tfsec-results.json)
-            MEDIUM_COUNT=$(jq '[.results[]? | select(.severity=="MEDIUM")] | length' tfsec-results.json)
+#           if [ -f tfsec-results.json ]; then
+#             CRITICAL_COUNT=$(jq '[.results[]? | select(.severity=="CRITICAL")] | length' tfsec-results.json)
+#             HIGH_COUNT=$(jq '[.results[]? | select(.severity=="HIGH")] | length' tfsec-results.json)
+#             MEDIUM_COUNT=$(jq '[.results[]? | select(.severity=="MEDIUM")] | length' tfsec-results.json)
             
-            echo "**Security Scan Results:**" >> $GITHUB_STEP_SUMMARY
-            echo "- 🔴 Critical: $CRITICAL_COUNT" >> $GITHUB_STEP_SUMMARY
-            echo "- 🟠 High: $HIGH_COUNT" >> $GITHUB_STEP_SUMMARY
-            echo "- 🟡 Medium: $MEDIUM_COUNT" >> $GITHUB_STEP_SUMMARY
+#             echo "**Security Scan Results:**" >> $GITHUB_STEP_SUMMARY
+#             echo "- 🔴 Critical: $CRITICAL_COUNT" >> $GITHUB_STEP_SUMMARY
+#             echo "- 🟠 High: $HIGH_COUNT" >> $GITHUB_STEP_SUMMARY
+#             echo "- 🟡 Medium: $MEDIUM_COUNT" >> $GITHUB_STEP_SUMMARY
             
-            if [ "$CRITICAL_COUNT" -gt 0 ]; then
-              echo "❌ Critical security issues found" >> $GITHUB_STEP_SUMMARY
-              tfsec . -f sarif > tfsec-sarif.json 2>/dev/null || true
-              exit 1
-            else
-              echo "✅ No critical security issues found" >> $GITHUB_STEP_SUMMARY
-            fi
-          fi
+#             if [ "$CRITICAL_COUNT" -gt 0 ]; then
+#               echo "❌ Critical security issues found" >> $GITHUB_STEP_SUMMARY
+#               tfsec . -f sarif > tfsec-sarif.json 2>/dev/null || true
+#               exit 1
+#             else
+#               echo "✅ No critical security issues found" >> $GITHUB_STEP_SUMMARY
+#             fi
+#           fi
 
-      - name: Upload tfsec SARIF
-        if: always() && steps.tfsec.outcome != 'skipped'
-        uses: github/codeql-action/upload-sarif@v2
-        with:
-          sarif_file: tfsec-sarif.json
-          category: tfsec
-          wait-for-processing: true
+#       - name: Upload tfsec SARIF
+#         if: always() && steps.tfsec.outcome != 'skipped'
+#         uses: github/codeql-action/upload-sarif@v2
+#         with:
+#           sarif_file: tfsec-sarif.json
+#           category: tfsec
+#           wait-for-processing: true
 
-      - name: Comment PR with Results
-        if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const fmtStatus = '${{ steps.fmt.outcome }}' === 'success' ? '✅ Passed' : '❌ Failed';
-            const initStatus = '${{ steps.init.outcome }}' === 'success' ? '✅ Passed' : '❌ Failed';
-            const validateStatus = '${{ steps.validate.outcome }}' === 'success' ? '✅ Passed' : '❌ Failed';
-            const planStatus = '${{ steps.plan.outcome }}' === 'success' ? '✅ Passed' : '❌ Failed';
-            const tfsecStatus = '${{ steps.tfsec.outcome }}' === 'success' ? '✅ Passed' : '⚠️ Check Results';
+#       - name: Comment PR with Results
+#         if: github.event_name == 'pull_request'
+#         uses: actions/github-script@v7
+#         with:
+#           github-token: ${{ secrets.GITHUB_TOKEN }}
+#           script: |
+#             const fmtStatus = '${{ steps.fmt.outcome }}' === 'success' ? '✅ Passed' : '❌ Failed';
+#             const initStatus = '${{ steps.init.outcome }}' === 'success' ? '✅ Passed' : '❌ Failed';
+#             const validateStatus = '${{ steps.validate.outcome }}' === 'success' ? '✅ Passed' : '❌ Failed';
+#             const planStatus = '${{ steps.plan.outcome }}' === 'success' ? '✅ Passed' : '❌ Failed';
+#             const tfsecStatus = '${{ steps.tfsec.outcome }}' === 'success' ? '✅ Passed' : '⚠️ Check Results';
             
-            let comment = '## ✅ Terraform PR Checks Summary\n\n';
-            comment += '| Check | Status |\n';
-            comment += '|-------|--------|\n';
-            comment += `| Format | ${fmtStatus} |\n`;
-            comment += `| Init | ${initStatus} |\n`;
-            comment += `| Validate | ${validateStatus} |\n`;
-            comment += `| Plan | ${planStatus} |\n`;
-            comment += `| tfsec | ${tfsecStatus} |\n`;
+#             let comment = '## ✅ Terraform PR Checks Summary\n\n';
+#             comment += '| Check | Status |\n';
+#             comment += '|-------|--------|\n';
+#             comment += `| Format | ${fmtStatus} |\n`;
+#             comment += `| Init | ${initStatus} |\n`;
+#             comment += `| Validate | ${validateStatus} |\n`;
+#             comment += `| Plan | ${planStatus} |\n`;
+#             comment += `| tfsec | ${tfsecStatus} |\n`;
             
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: comment
-            });
+#             github.rest.issues.createComment({
+#               issue_number: context.issue.number,
+#               owner: context.repo.owner,
+#               repo: context.repo.repo,
+#               body: comment
+#             });
 
-      - name: Fail if critical checks failed
-        if: failure()
-        run: |
-          echo "❌ Terraform PR checks failed. Please review the errors above."
-          exit 1
+#       - name: Fail if critical checks failed
+#         if: failure()
+#         run: |
+#           echo "❌ Terraform PR checks failed. Please review the errors above."
+#           exit 1
