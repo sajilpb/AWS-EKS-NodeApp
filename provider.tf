@@ -1,17 +1,17 @@
 terraform {
   required_providers {
     aws = {
-      source = "hashicorp/aws"
+      source  = "hashicorp/aws"
       version = ">=6.0.0"
     }
 
     kubernetes = {
-      source = "hashicorp/kubernetes"
+      source  = "hashicorp/kubernetes"
       version = "2.38.0"
     }
 
     helm = {
-      source = "hashicorp/helm"
+      source  = "hashicorp/helm"
       version = "3.1.0"
     }
 
@@ -19,7 +19,7 @@ terraform {
 }
 
 provider "aws" {
-  region = "us-east-1"  
+  region = "us-east-1"
 }
 
 provider "kubernetes" {
@@ -32,7 +32,7 @@ provider "kubernetes" {
     args = ["eks", "get-token", "--cluster-name", module.eks.cluster_name]
   }
 }
-  
+
 provider "helm" {
   kubernetes = {
     host                   = module.eks.cluster_endpoint

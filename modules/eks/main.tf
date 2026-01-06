@@ -40,7 +40,7 @@ module "eks" {
   endpoint_public_access = true
 
   addons = {
-    coredns                = { most_recent = true }
+    # coredns                = { most_recent = true }
     eks-pod-identity-agent = { before_compute = true}
     kube-proxy             = { most_recent = true }
     vpc-cni                = { before_compute = true}
@@ -48,23 +48,18 @@ module "eks" {
 
   enable_cluster_creator_admin_permissions = true
 
-  # Attach ECR policy to node IAM role (unchanged)
-  node_iam_role_additional_policies = {
-    ecr_access = aws_iam_policy.eks_ecr_policy.arn
-  } 
- 
-  # EKS Managed Node Group(s)
-  eks_managed_node_groups = {
-    NodeApp = {
-      # Starting on 1.30, AL2023 is the default AMI type for EKS managed node groups
-      ami_type       = "AL2023_x86_64_STANDARD"
-      instance_types = ["t2.large"]
 
-      min_size     = 1
-      max_size     = 2
-      desired_size = 1
+  fargate_profiles = {
+    fp-default = {
+      selectors = [
+        {
+          namespace = "default"
+          labels ={
+            runOn = "fargate"
+          }
+        },
+      ]
     }
-
   }
 
   tags = {
