@@ -18,7 +18,7 @@ variable "cluster_name" {
 
 variable "rolearn" {
   description = "Add admin role to the aws-auth configmap"
-  default = "yes"
+  default     = "yes"
 }
 
 ################################################################################
@@ -49,23 +49,23 @@ variable "Codebuild-project-name" {
 }
 
 variable "Codebuild-project-name-description" {
- type = string
- default = "Node-application-build"
+  type    = string
+  default = "Node-application-build"
 }
 
 variable "Source-repo" {
-  type = string
+  type    = string
   default = "https://github.com/sajil143pb/AWS-codecommit.git"
 }
 
 variable "source-buildspec-file" {
-    type = string
-    default = "02-Docker-image-pipeline/buildspec.yml"
+  type    = string
+  default = "02-Docker-image-pipeline/buildspec.yml"
 }
 
 variable "source-branch" {
-    type = string
-    default = "main"
+  type    = string
+  default = "main"
 }
 
 ################################################################################
@@ -73,6 +73,6 @@ variable "source-branch" {
 ################################################################################
 
 variable "domain_name" {
-  type = string
+  type    = string
   default = "sajil.click"
 }

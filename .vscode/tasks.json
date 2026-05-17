@@ -1,0 +1,84 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Terraform: Apply",
+            "type": "shell",
+            "command": "terraform apply -auto-approve",
+            "options": {
+                "cwd": "${workspaceFolder}/Terraform",
+                "env": {
+                    "AWS_PROFILE": "sajil"
+                }
+            },
+            "group": {
+                "kind": "build"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "K8s: Get Pods (All Namespaces)",
+            "type": "shell",
+            "command": "kubectl get pods -A",
+            "options": {
+                "env": {
+                    "AWS_PROFILE": "sajil"
+                }
+            },
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "ArgoCD: Sync App",
+            "type": "shell",
+            "command": "argocd app sync nodeapp-prod",
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "Configure Kubeconfig",
+            "type": "shell",
+            "command": "aws eks update-kubeconfig --region us-east-1 --name NodeApp --profile sajil",
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "Retrieve Argo CD Password",
+            "type": "shell",
+            "command": "kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 -d && echo",
+            "options": {
+                "env": {
+                    "AWS_PROFILE": "sajil"
+                }
+            },
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "Rollout applications",
+            "type": "shell",
+            "command": "kubectl apply -f Applications/",
+            "group": "build",
+            "options": {
+                "cwd": "${workspaceFolder}",
+                "env": {
+                    "AWS_PROFILE": "sajil"
+                }
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Terraform Destroy",
+            "type": "shell",
+            "command": "terraform destroy -auto-approve",
+            "group": "build",
+            "options": {
+                "cwd": "${workspaceFolder}/Terraform",
+                "env": {
+                    "AWS_PROFILE": "sajil"
+                }
+            },
+            "problemMatcher": []
+        }
+    ]
+}

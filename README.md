@@ -26,21 +26,23 @@ This repository showcases a complete CI/CD pipeline for a microservices-based No
 
 ```
 .
-├── modules/
-│   ├── eks/               # EKS cluster provisioning
-│   ├── vpc/               # Networking setup
-│   ├── codebuild/         # Image build pipeline
-│   ├── ecr/               # Container registry
-│   ├── argocd/            # Argo CD installation
-│   ├── alb/               # ALB Ingress Controller setup
-│   ├── route53/           # ExternalDNS and domain setup
-│   └── argo-rollouts/     # Canary controller and dashboard
+├── Terraform/
+│   ├── modules/
+│   │   ├── eks/               # EKS cluster provisioning
+│   │   ├── vpc/               # Networking setup
+│   │   ├── codebuild/         # Image build pipeline
+│   │   ├── ecr/               # Container registry
+│   │   ├── argocd/            # Argo CD installation
+│   │   ├── alb/               # ALB Ingress Controller setup
+│   │   └── route53/           # ExternalDNS and domain setup
+│   ├── main.tf
+│   └── provider.tf
 ├── helm/
 │   └── nodeapp/           # Helm chart for the Node.js app
-├── applications/
+├── Applications/
 │   ├── Argoapplications-dev.yaml     # Dev namesapce  Values for Argo CD chart
-│   └── Argoapplications-prod.yaml    # Prod namespace Values for Argo CD chart
-├── main.tf
+│   ├── Argoapplications-prod.yaml    # Prod namespace Values for Argo CD chart
+│   └── Argoingress.yaml              # Argo CD ingress
 └── README.md
 ```
 
@@ -80,12 +82,13 @@ This repository showcases a complete CI/CD pipeline for a microservices-based No
 
 ```bash
 # Initialize and apply infrastructure
+cd Terraform
 terraform init
 terraform apply
 
 # Apply the Argo ingress and Argo application manifest file
-kubectl apply -f applications/Argoapplications-dev.yaml
-kubectl apply -f applications/Argoapplications-prod.yaml
+kubectl apply -f Applications/Argoapplications-dev.yaml
+kubectl apply -f Applications/Argoapplications-prod.yaml
 
 # Verify Argo CD is up
 kubectl get svc -n argocd

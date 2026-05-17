@@ -17,6 +17,7 @@ on:
 env:
   TERRAFORM_VERSION: 1.6.0
   TFSEC_VERSION: v1.28.1
+  TERRAFORM_WORKING_DIR: Terraform
 
 jobs:
   terraform-checks:
@@ -42,7 +43,7 @@ jobs:
         id: fmt
         run: |
           echo "### Terraform Format Check" >> $GITHUB_STEP_SUMMARY
-          if terraform fmt -check -recursive .; then
+          if terraform fmt -check -recursive "${{ env.TERRAFORM_WORKING_DIR }}"; then
             echo "✅ Terraform files are properly formatted" >> $GITHUB_STEP_SUMMARY
           else
             echo "❌ Terraform files need formatting" >> $GITHUB_STEP_SUMMARY
@@ -51,6 +52,7 @@ jobs:
 
       - name: Terraform Init
         id: init
+        working-directory: ${{ env.TERRAFORM_WORKING_DIR }}
         run: |
           echo "### Terraform Init" >> $GITHUB_STEP_SUMMARY
           terraform init -backend=false
@@ -58,6 +60,7 @@ jobs:
 
       - name: Terraform Validate
         id: validate
+        working-directory: ${{ env.TERRAFORM_WORKING_DIR }}
         run: |
           echo "### Terraform Validate" >> $GITHUB_STEP_SUMMARY
           if terraform validate; then
@@ -69,6 +72,7 @@ jobs:
 
       - name: Terraform Plan
         id: plan
+        working-directory: ${{ env.TERRAFORM_WORKING_DIR }}
         run: |
           echo "### Terraform Plan" >> $GITHUB_STEP_SUMMARY
           terraform plan -no-color -out=tfplan 2>&1 | tee plan.txt || true
@@ -94,7 +98,8 @@ jobs:
         run: |
           echo "### tfsec Security Scan" >> $GITHUB_STEP_SUMMARY
           
-          tfsec . -f json > tfsec-results.json 2>/dev/null || true
+          tfsec "${{ env.TERRAFORM_WORKING_DIR }}" -f json > tfsec-results.json 2>/dev/null || true
+          tfsec "${{ env.TERRAFORM_WORKING_DIR }}" -f sarif > tfsec-sarif.json 2>/dev/null || true
           
           if [ -f tfsec-results.json ]; then
             CRITICAL_COUNT=$(jq '[.results[]? | select(.severity=="CRITICAL")] | length' tfsec-results.json)
@@ -108,7 +113,6 @@ jobs:
             
             if [ "$CRITICAL_COUNT" -gt 0 ]; then
               echo "❌ Critical security issues found" >> $GITHUB_STEP_SUMMARY
-              tfsec . -f sarif > tfsec-sarif.json 2>/dev/null || true
               exit 1
             else
               echo "✅ No critical security issues found" >> $GITHUB_STEP_SUMMARY

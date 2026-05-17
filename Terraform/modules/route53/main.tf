@@ -77,42 +77,42 @@ resource "helm_release" "external_dns" {
 
   set = [
     {
-    name  = "provider"
-    value = "aws"
+      name  = "provider"
+      value = "aws"
     },
     {
-    name  = "policy"
-    value = "sync"
+      name  = "policy"
+      value = "sync"
     },
     {
-    name  = "registry"
-    value = "txt"
+      name  = "registry"
+      value = "txt"
     },
     {
-    name  = "txtOwnerId"
-    value = "eks-lab"
+      name  = "txtOwnerId"
+      value = "eks-lab"
     },
     {
-    name  = "aws.zoneType"
-    value = "public"
+      name  = "aws.zoneType"
+      value = "public"
     },
     {
-    name  = "domainFilters[0]"
-    value = "sajil.click"
+      name  = "domainFilters[0]"
+      value = "sajil.click"
     },
     {
-    name  = "serviceAccount.create"
-    value = "true"
+      name  = "serviceAccount.create"
+      value = "true"
     },
     {
-    name  = "serviceAccount.name"
-    value = "external-dns"
+      name  = "serviceAccount.name"
+      value = "external-dns"
     },
     {
-    name  = "serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
-    value = aws_iam_role.external_dns.arn
+      name  = "serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
+      value = aws_iam_role.external_dns.arn
     }
-      ]
+  ]
 }
 
 # data "aws_route53_zone" "selected" {

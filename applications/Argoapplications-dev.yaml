@@ -5,6 +5,14 @@ metadata:
   namespace: argocd
 spec:
   project: default
+  ignoreDifferences:
+    - group: argoproj.io
+      kind: Rollout
+      name: node
+      namespace: dev
+      jsonPointers:
+        - /spec/strategy/canary/steps/1/analysis/templates/0/args
+        - /spec/strategy/canary/steps/4/analysis/templates/0/args
   source:
     repoURL: https://github.com/sajilpb/Helm.git
     targetRevision: main
@@ -18,6 +26,7 @@ spec:
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
+      - RespectIgnoreDifferences=true
     automated:
       prune: true
       selfHeal: true

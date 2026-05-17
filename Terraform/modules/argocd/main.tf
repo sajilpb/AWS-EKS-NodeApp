@@ -7,28 +7,28 @@ resource "helm_release" "argo_rollouts" {
 
   set = [
     {
-    name  = "serviceAccount.create"
-    value = "false"
+      name  = "serviceAccount.create"
+      value = "false"
     },
     {
-    name  = "dashboard.enabled"
-    value = "true"
+      name  = "dashboard.enabled"
+      value = "true"
     },
     {
-    name  = "dashboard.service.targetPort"
-    value = "3100"
+      name  = "dashboard.service.targetPort"
+      value = "3100"
     },
     {
-    name  = "dashboard.service.port"
-    value = "3100"
+      name  = "dashboard.service.port"
+      value = "3100"
     },
     {
-    name  = "dashboard.service.portName"
-    value = ""
+      name  = "dashboard.service.portName"
+      value = ""
     },
     {
-    name  = "dashboard.containerPort"
-    value = "3100"
+      name  = "dashboard.containerPort"
+      value = "3100"
     },
   ]
 }

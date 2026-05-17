@@ -7,13 +7,13 @@ variable "Codebuild-project-name-description" {
 }
 
 variable "Source-repo" {
-    type = string
+  type = string
 }
 
 variable "source-buildspec-file" {
-    type = string
+  type = string
 }
 
 variable "source-branch" {
-    type = string
+  type = string
 }

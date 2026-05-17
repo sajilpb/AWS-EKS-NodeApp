@@ -75,7 +75,7 @@ data "aws_iam_policy_document" "policy_codebuild" {
     resources = ["*"]
   }
 
-   statement {
+  statement {
     effect = "Allow"
 
     actions = [
@@ -87,7 +87,7 @@ data "aws_iam_policy_document" "policy_codebuild" {
 }
 
 resource "aws_iam_role_policy" "codebuild" {
-  name = "codebuild-java"
+  name   = "codebuild-java"
   role   = aws_iam_role.codebuild.name
   policy = data.aws_iam_policy_document.policy_codebuild.json
 }

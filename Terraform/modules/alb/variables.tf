@@ -1,3 +1,10 @@
+variable "env_name" {
+  type = string
+}
+
+variable "oidc_provider_arn" {
+  type = string
+}
 
 ################################################################################
 # Variables from other Modules
@@ -9,10 +16,10 @@ variable "vpc_id" {
 }
 
 variable "cluster_name" {
-    type = string
+  type = string
 }
 
 variable "main-region" {
-    type = string  
+  type = string
 }
 
